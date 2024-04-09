@@ -17,7 +17,18 @@
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
       import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
+      let auto;
+      let actualLocation = 0;
+      let isCarSpinning = false;
+      let rotation = 0;
+      const ruta = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, 510),
+        new THREE.Vector3(0, 0, 515),
+        new THREE.Vector3(0, 0, 1010),
+      ];
       const scene = new THREE.Scene();
+
       //fondo de la escena
       scene.background = new THREE.Color(0xbfe3dd);
       //camara como aparece por primera vez
@@ -27,13 +38,9 @@
         1,
         10000
       );
-
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
-
-      // const pmremGenerator = new THREE.PMREMGenerator( renderer );
-      // scene.environment = pmremGenerator.fromScene( new RoomEnvironment( renderer ), 0.04 ).texture;
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 0.5, 0);
@@ -51,8 +58,13 @@
           loader.setMaterials(materials);
 
           loader.load("models/city.obj", (object) => {
+            object.traverse((child) => {
+              if (child.name === "Car_08.6") {
+                auto = child;
+              }
+            });
             scene.add(object);
-            camera.position.set(0, 0, 5);
+            camera.position.set(100, 700, 1000);
           });
         },
         undefined,
@@ -61,17 +73,31 @@
         }
       );
       const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(0, 1, 1);
-scene.add(light);
+      light.position.set(0, 1, 1);
+      scene.add(light);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
-      // const light = new THREE.PointLight(0xffffff, 1000);
-      // light.position.set(2.5, 7.5, 15);
-      // scene.add(light);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);  
 
       function animate() {
         requestAnimationFrame(animate);
+        if (auto) {
+          const objetivo = ruta[actualLocation];
+          const direccion = new THREE.Vector3()
+            .subVectors(objetivo, auto.position)
+            .normalize();
+
+          // Si el auto no está girando, muévelo hacia el próximo punto
+          auto.position.add(direccion.multiplyScalar(0.6));
+
+          // Si el auto está cerca del punto objetivo y no está girando, pasa al siguiente punto
+          // console.log(actualLocation, auto.position);
+          if (auto.position.distanceTo(objetivo) < 0.01 && !isCarSpinning) {
+            actualLocation = (actualLocation + 1) % ruta.length;
+            // Si el auto acaba de llegar al punto 2, comienza a girar
+          }
+        }
+
         renderer.render(scene, camera);
       }
       animate();
