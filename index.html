@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Traffic light app</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+  </head>
+
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+      import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+      const scene = new THREE.Scene();
+      //fondo de la escena
+      scene.background = new THREE.Color(0xbfe3dd);
+      //camara como aparece por primera vez
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        1,
+        10000
+      );
+
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // const pmremGenerator = new THREE.PMREMGenerator( renderer );
+      // scene.environment = pmremGenerator.fromScene( new RoomEnvironment( renderer ), 0.04 ).texture;
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 0.5, 0);
+      controls.update();
+      controls.enablePan = false;
+      controls.enableDamping = true;
+
+      const mtlLoader = new MTLLoader();
+
+      mtlLoader.load(
+        "mtls/city.mtl",
+        (materials) => {
+          materials.preload();
+          const loader = new OBJLoader();
+          loader.setMaterials(materials);
+
+          loader.load("models/city.obj", (object) => {
+            scene.add(object);
+            camera.position.set(0, 0, 5);
+          });
+        },
+        undefined,
+        function (error) {
+          console.error(error);
+        }
+      );
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(0, 1, 1);
+scene.add(light);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+      // const light = new THREE.PointLight(0xffffff, 1000);
+      // light.position.set(2.5, 7.5, 15);
+      // scene.add(light);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+    </script>
+  </body>
+</html>
