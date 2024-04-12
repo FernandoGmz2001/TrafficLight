@@ -30,10 +30,10 @@
       const scene = new THREE.Scene();
 
       //fondo de la escena
-      scene.background = new THREE.Color(0xbfe3dd);
+      scene.background = new THREE.Color(0x202020);
       //camara como aparece por primera vez
       const camera = new THREE.PerspectiveCamera(
-        75,
+        45,
         window.innerWidth / window.innerHeight,
         1,
         10000
@@ -51,20 +51,14 @@
       const mtlLoader = new MTLLoader();
 
       mtlLoader.load(
-        "mtls/city.mtl",
+        "models/streetV2.mtl",
         (materials) => {
           materials.preload();
           const loader = new OBJLoader();
           loader.setMaterials(materials);
-
-          loader.load("models/city.obj", (object) => {
-            object.traverse((child) => {
-              if (child.name === "Car_08.6") {
-                auto = child;
-              }
-            });
+          loader.load("models/streetv2.obj", (object) => {
             scene.add(object);
-            camera.position.set(100, 700, 1000);
+            camera.position.set(-152, 9.4, 111);
           });
         },
         undefined,
@@ -87,14 +81,10 @@
             .subVectors(objetivo, auto.position)
             .normalize();
 
-          // Si el auto no está girando, muévelo hacia el próximo punto
           auto.position.add(direccion.multiplyScalar(0.6));
 
-          // Si el auto está cerca del punto objetivo y no está girando, pasa al siguiente punto
-          // console.log(actualLocation, auto.position);
           if (auto.position.distanceTo(objetivo) < 0.01 && !isCarSpinning) {
             actualLocation = (actualLocation + 1) % ruta.length;
-            // Si el auto acaba de llegar al punto 2, comienza a girar
           }
         }
 
